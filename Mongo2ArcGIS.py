@@ -1,9 +1,12 @@
 from DataAccess import MongoDB
 from DataAccess import Objects2GDB
+import sys
 
 db = MongoDB.getDB()
-coll = MongoDB.gedCollection()
+coll = MongoDB.getCollection()
+collection_places = MongoDB.getCollectionName()
 fc_twitterPlaces = 'twitterplaces'
+fc_points =Objects2GDB.fclasPoints
 
 #This method aggregates all tweets' places that are stored in a defined collection
 #Into an ArcGIS FeatureClass
@@ -34,6 +37,25 @@ def aggregateTwitterPlaces(coll, fc):
         print ('%s - %s Tweets' % (full_name, count))
     Objects2GDB.insertObjects(fc_twitterPlaces, fields, objs)
 
+
+def getGPSpoints(coll, lon, lat):
+    fields=['name','description','number','SHAPE@']
+    cur=db[coll].find()
+    count = 0
+    for res in cur:
+        obj = []
+        longitude = res[lon]
+        latitude = res[lat]
+        geometry=Objects2GDB.getEsriPoint(longitude,latitude)
+        #geometry = (longitude,latitude)
+        obj.append(str(res['device']))
+        obj.append(str(res['time_gps']))
+        obj.append(res['precision'])
+        obj.append(geometry)
+        Objects2GDB.insertPoint(fc_points, fields, obj)
+        count +=1
+    print('Inserted %i objects '% (count))
+    del cur
 
 
 
@@ -70,4 +92,6 @@ def getWKTPolygon(bbox):
 
 if __name__ == "__main__":
 
-    aggregateTwitterPlaces('timeLine', 'p')
+    #aggregateTwitterPlaces('timeLine', 'p')
+
+    getGPSpoints(collection_places, "longitude", "latitude")

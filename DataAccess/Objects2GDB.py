@@ -31,6 +31,16 @@ def insertObjects(fc, fields, objs):
 
     del cursor
 
+#Function to optmize the process to insert points
+def insertPoint(fc, fields, point):
+    cursor = arcpy.da.InsertCursor(gdb + fc, fields)
+    try:
+        cursor.insertRow(point)
+    except Exception as e:
+        print(e)
+    del cursor
+
+
 if __name__ == '__main__':
     fields = ['name', 'description', 'SHAPE@']
 
